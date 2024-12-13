@@ -1,2 +1,1 @@
-# steal
-Release repo for Steal-WebApp
+# steal-private
