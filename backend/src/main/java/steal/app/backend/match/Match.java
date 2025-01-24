@@ -38,7 +38,6 @@ public class Match {
         this.losers = matchDTO.getLosers();
         this.winnerPoints = matchDTO.getWinnerPoints();
         this.loserPoints = matchDTO.getLoserPoints();
-        this.lastModified = matchDTO.getLastModified();
     }
 
     public Long getId() { return id; }
@@ -67,5 +66,4 @@ public class Match {
 
     public LocalDateTime getLastModified() { return lastModified; }
     public void setLastModified(LocalDateTime lastModified) { this.lastModified = lastModified; }
-
 }

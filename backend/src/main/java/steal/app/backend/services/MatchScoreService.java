@@ -78,4 +78,8 @@ public class MatchScoreService {
             scoreRepository.save(score);
         }
     }
+    private void deleteScores(Long matchId) {
+        matchRepository.deleteById(matchId);
+        scoreRepository.deleteByMatchId(matchId);
+    }
 }
