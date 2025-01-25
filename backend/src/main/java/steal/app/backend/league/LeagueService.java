@@ -28,6 +28,9 @@ public class LeagueService {
     }
 
     public League updateLeague(League league) {
+        if (!leagueRepository.existsById(league.getId())) {
+            throw new RuntimeException("League does not exist");
+        }
         return leagueRepository.save(league);
     }
 

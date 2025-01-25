@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
-    List<Match> findMatchesByLeagueId(Long leagueId);
+    public List<Match> findMatchesByLeagueId(Long leagueId);
 
 }

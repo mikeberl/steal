@@ -2,6 +2,8 @@ package steal.app.backend.ranking;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "rankings")
 public class Ranking {
@@ -12,6 +14,9 @@ public class Ranking {
 
     private Long leagueId;
     private Long playerId;
+
+    @ElementCollection
+    private List<Long> matchIds;
 
     private int totalScore = 0;
 
@@ -25,6 +30,10 @@ public class Ranking {
 
     public int getTotalScore() { return totalScore; }
     public void setTotalScore(int totalPoints) { this.totalScore = totalPoints; }
-    public void updateTotalPoints(int score) { totalScore += score; }
+    public void updateTotalScore(int score) { totalScore += score; }
+    public void changeTotalScore(int prevScore, int newScore) { totalScore = totalScore - prevScore + newScore; }
+    public void removeScore(int score) { totalScore -= score; }
 
+    public List<Long> getMatchIds() { return matchIds;    }
+    public void addMatchId(Long matchId) { this.matchIds.add(matchId); }
 }
