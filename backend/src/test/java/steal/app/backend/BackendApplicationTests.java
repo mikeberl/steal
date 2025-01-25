@@ -1,24 +1,19 @@
 package steal.app.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import steal.app.backend.league.LeagueDTO;
-import steal.app.backend.player.Player;
 import steal.app.backend.player.PlayerDTO;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,6 +78,8 @@ public class BackendApplicationTests {
 						.content(playerJson))
 				.andDo(print())
 				.andExpect(status().isOk());
+
+
 	}
 
 	@Order(2)
@@ -102,6 +99,22 @@ public class BackendApplicationTests {
 				.andExpect(status().isOk());
 	}
 
+	@Order(3)
+	@Test
+	public void testCreateLeagueInvalid() throws Exception {
+		LeagueDTO dto = new LeagueDTO();
+		dto.setName("Unique League Name");
+		dto.setOwnerId(1L);
+		dto.setSport("Roundnet");
+		dto.setLocation("Bolzano");
+		String playerJson = objectMapper.writeValueAsString(dto);
+
+		mockMvc.perform(post("/api/v1/leagues")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(playerJson))
+				.andDo(print())
+				.andExpect(status().isOk());
+	}
 //	@Test
 //	public void testCreateMatch() {
 //		// Prima crea un giocatore
