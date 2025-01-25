@@ -30,15 +30,6 @@ public class Match {
     private LocalDateTime lastModified;
 
     public Match() {}
-    public Match(MatchDTO matchDTO) {
-        this.creatorId = matchDTO.getCreatorId();
-        this.leagueId = matchDTO.getLeagueId();
-        this.date = matchDTO.getDate();
-        this.winners = matchDTO.getWinners();
-        this.losers = matchDTO.getLosers();
-        this.winnerPoints = matchDTO.getWinnerPoints();
-        this.loserPoints = matchDTO.getLoserPoints();
-    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -1,5 +1,7 @@
 package steal.app.backend.player;
 
+import java.util.ArrayList;
+
 public class PlayerMapper {
 
     public static PlayerDTO toDTO(Player player) {
@@ -8,7 +10,6 @@ public class PlayerMapper {
         dto.setName(player.getName());
         dto.setEmail(player.getEmail());
         dto.setPassword(player.getPassword());
-        dto.setLeagues(player.getLeagues());
 
         return dto;
     }
@@ -19,7 +20,7 @@ public class PlayerMapper {
         player.setName(dto.getName());
         player.setEmail(dto.getEmail());
         player.setPassword(dto.getPassword());
-        player.setLeagues(dto.getLeagues());
+        player.setLeagues(new ArrayList<>());
 
         return player;
     }

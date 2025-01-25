@@ -1,5 +1,7 @@
 package steal.app.backend.match;
 
+import java.time.LocalDateTime;
+
 public class MatchMapper {
 
     public static MatchDTO toDTO(Match match) {
@@ -28,7 +30,7 @@ public class MatchMapper {
         match.setLosers(dto.getLosers());
         match.setWinnerPoints(dto.getWinnerPoints());
         match.setWinnerPoints(dto.getWinnerPoints());
-        match.setLastModified(dto.getLastModified());
+        match.setLastModified(LocalDateTime.now());
 
         return match;
     }

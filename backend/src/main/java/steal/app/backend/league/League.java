@@ -4,7 +4,7 @@ package steal.app.backend.league;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="league")
+@Table(name="leagues")
 public class League {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -2,10 +2,8 @@ package steal.app.backend.match;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import steal.app.backend.services.MatchScoreService;
 
 import java.util.List;
 
@@ -14,10 +12,12 @@ import java.util.List;
 public class MatchController {
 
     private final MatchService matchService;
+    private final MatchScoreService matchScoreService;
 
     @Autowired
-    public MatchController(final MatchService matchService) {
+    public MatchController(final MatchService matchService, MatchScoreService matchScoreService) {
         this.matchService = matchService;
+        this.matchScoreService = matchScoreService;
     }
 
     @GetMapping("by-id/{id}")
@@ -31,6 +31,18 @@ public class MatchController {
         List<Match> matches = this.matchService.getByLeague(leagueId);
 
         return ResponseEntity.ok().body(matches);
+    }
+
+    @PostMapping
+    public ResponseEntity<Match> createMatch(@RequestBody MatchDTO matchDTO) {
+        Match match = this.matchScoreService.saveMatch(matchDTO);
+        return ResponseEntity.ok().body(match);
+    }
+
+    @DeleteMapping("{matchId}")
+    public ResponseEntity<Void> deleteMatch(@PathVariable Long matchId) {
+        this.matchScoreService.deleteMatch(matchId);
+        return ResponseEntity.noContent().build();
     }
 
 }

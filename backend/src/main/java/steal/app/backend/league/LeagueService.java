@@ -2,6 +2,7 @@ package steal.app.backend.league;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import steal.app.backend.player.PlayerRepository;
 
 import java.util.List;
 
@@ -9,10 +10,12 @@ import java.util.List;
 public class LeagueService {
 
     private final LeagueRepository leagueRepository;
+    private final PlayerRepository playerRepository;
 
     @Autowired
-    public LeagueService(LeagueRepository leagueRepository) {
+    public LeagueService(LeagueRepository leagueRepository, PlayerRepository playerRepository) {
         this.leagueRepository = leagueRepository;
+        this.playerRepository = playerRepository;
     }
 
     public List<League> getAllLeagues() {
@@ -24,6 +27,12 @@ public class LeagueService {
     }
 
     public League addLeague(League league) {
+        if (!playerRepository.existsById(league.getOwnerId())){
+            throw new RuntimeException("Owner does not exist");
+        }
+        if (leagueRepository.findByName(league.getName()) != null){
+            throw new RuntimeException("League already exists");
+        }
         return leagueRepository.save(league);
     }
 

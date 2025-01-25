@@ -2,6 +2,7 @@ package steal.app.backend.ranking;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,6 +22,12 @@ public class Ranking {
     private int totalScore = 0;
 
     public Ranking() {}
+
+    public Ranking(Long leagueId, Long playerId) {
+        this.leagueId = leagueId;
+        this.playerId = playerId;
+        matchIds = new ArrayList<>();
+    }
 
     public Long getLeagueId() { return leagueId; }
     public void setLeagueId(Long leagueId) { this.leagueId = leagueId; }

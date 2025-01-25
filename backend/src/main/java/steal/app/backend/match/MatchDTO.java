@@ -25,17 +25,6 @@ public class MatchDTO {
 
     public MatchDTO() {}
 
-    public MatchDTO(Match match) {
-        this.id = match.getId();
-        this.creatorId = match.getCreatorId();
-        this.leagueId = match.getLeagueId();
-        this.date = match.getDate();
-        this.winners = match.getWinners();
-        this.losers = match.getLosers();
-        this.winnerPoints = match.getWinnerPoints();
-        this.loserPoints = match.getLoserPoints();
-    }
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
