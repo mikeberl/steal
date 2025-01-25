@@ -76,7 +76,8 @@ public class MatchScoreService {
         });
     }
 
-    private void deleteMatch(MatchDTO matchDTO) {
+    @Transactional
+    public void deleteMatch(MatchDTO matchDTO) {
         matchRepository.deleteById(matchDTO.getId());
         modifyRankings(matchDTO, matchDTO.getWinners(), matchDTO.getWinnerPoints(), 0); // ranking is not removed just updated without the match
         modifyRankings(matchDTO, matchDTO.getLosers(), matchDTO.getLoserPoints(), 0);

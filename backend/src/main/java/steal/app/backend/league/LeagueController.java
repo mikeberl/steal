@@ -32,13 +32,13 @@ public class LeagueController {
 
     @PostMapping
     public ResponseEntity<League> createLeague(@Valid @RequestBody  LeagueDTO leagueDTO) {
-        League savedLeague = leagueService.addLeague(new League(leagueDTO));
+        League savedLeague = leagueService.addLeague(LeagueMapper.toEntity(leagueDTO));
         return ResponseEntity.ok().body(savedLeague);
     }
 
     @PutMapping
     public ResponseEntity<League> updateLeague(@Valid @RequestBody  LeagueDTO leagueDTO) {
-        League updatedLeague = leagueService.updateLeague(new League(leagueDTO));
+        League updatedLeague = leagueService.updateLeague(LeagueMapper.toEntity(leagueDTO));
         return ResponseEntity.ok().body(updatedLeague);
     }
 

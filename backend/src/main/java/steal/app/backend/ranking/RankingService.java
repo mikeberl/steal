@@ -1,5 +1,6 @@
 package steal.app.backend.ranking;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 public class RankingService {
     private RankingRepository rankingRepository;
 
+    @Autowired
     public RankingService(RankingRepository rankingRepository) {
         this.rankingRepository = rankingRepository;
     }

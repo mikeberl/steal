@@ -20,6 +20,8 @@ public class MatchDTO {
     private int winnerPoints;
     private int loserPoints;
 
+    private LocalDateTime lastModified;
+
 
     public MatchDTO() {}
 
@@ -57,5 +59,8 @@ public class MatchDTO {
 
     public int getLoserPoints() { return loserPoints; }
     public void setLoserPoints(int loserPoints) { this.loserPoints = loserPoints;}
+
+    public LocalDateTime getLastModified() { return lastModified; }
+    public void setLastModified(LocalDateTime lastModified) { this.lastModified = lastModified; }
 
 }

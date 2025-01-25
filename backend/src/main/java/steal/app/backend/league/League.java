@@ -17,13 +17,6 @@ public class League {
 
     public League() {}
 
-    public League(LeagueDTO leagueDto) {
-        this.ownerId = leagueDto.getOwnerId();
-        this.name = leagueDto.getName();
-        this.sport = leagueDto.getSport();
-        this.location = leagueDto.getLocation();
-    }
-
     public Long getId() {
         return id;
     }

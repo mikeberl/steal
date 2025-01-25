@@ -14,14 +14,6 @@ public class LeagueDTO {
 
     public LeagueDTO() {}
 
-    public LeagueDTO(League league) {
-        this.id = league.getId();
-        this.ownerId = league.getOwnerId();
-        this.name = league.getName();
-        this.sport = league.getSport();
-        this.location = league.getLocation();
-    }
-
     public Long getId() {
         return id;
     }
