@@ -33,4 +33,8 @@ public class RankingService {
     public Ranking getRankingByLeagueIdAndPlayerId(Long leagueId, Long playerId) {
         return rankingRepository.findRankingByLeagueIdAndPlayerId(leagueId, playerId).orElseThrow();
     }
+
+    public List<PlayerRankingDTO> getPlayerRankingsForLeague(Long leagueId) {
+        return rankingRepository.findPlayerRankingsByLeagueId(leagueId);
+    }
 }

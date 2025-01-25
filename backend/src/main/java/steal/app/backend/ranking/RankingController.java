@@ -30,13 +30,19 @@ public class RankingController {
         return rankingService.getRankingById(rankingId);
     }
 
-    @GetMapping("{leagueId}")
+    @GetMapping("by-league/{leagueId}")
     public ResponseEntity<List<Ranking>> getRankingsByLeague(@PathVariable("leagueId") Long leagueId) {
         List<Ranking> rankingsOfLeague = rankingService.getRankingByLeagueId(leagueId);
         return ResponseEntity.ok().body(rankingsOfLeague);
     }
 
-    @GetMapping("{playerId}")
+    @GetMapping("by-league-complete/{leagueId}")
+    public ResponseEntity<List<PlayerRankingDTO>> getRankingsByLeagueComplete(@PathVariable("leagueId") Long leagueId) {
+        List<PlayerRankingDTO> rankingsWithInfo = rankingService.getPlayerRankingsForLeague(leagueId);
+        return ResponseEntity.ok().body(rankingsWithInfo);
+    }
+
+    @GetMapping("by-player/{playerId}")
     public ResponseEntity<List<Ranking>> getRankingsByPlayer(@PathVariable("playerId") Long playerId) {
         List<Ranking> rankingsOfPlayer = rankingService.getRankingByPlayerId(playerId);
         return ResponseEntity.ok().body(rankingsOfPlayer);

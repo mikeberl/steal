@@ -109,6 +109,18 @@ Questo progetto è un backend sviluppato in Spring Boot. Fornisce API per la ges
 
 ---
 
+### 4. Registrations
+**Base URL:** `/api/v1/registrations`
+
+#### API disponibili:
+- **POST** `/register-player`
+  - TABLE `players` -> update league list
+  - TABLE `rankings` -> create a new ranking for the player and list
+
+- **DELETE** `/deregister-player`
+  - TABLE `players` -> remove league from list
+  - TABLE `rankings` -> remove the ranking of the player
+
 ## Tecnologie Utilizzate
 - **Java 21**
 - **Spring Boot** (versione X.X.X)
