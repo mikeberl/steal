@@ -1,12 +1,17 @@
 package steal.app.backend.player;
 
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 public class PlayerDTO {
 
     private Long id;
+    @NotEmpty(message = "Name cannot be empty")
     private String name;
+    @NotEmpty(message = "Email cannot be empty")
     private String email;
+    @NotEmpty(message = "Password cannot be empty")
     private String password;
 
     private List<Long> leagues;
