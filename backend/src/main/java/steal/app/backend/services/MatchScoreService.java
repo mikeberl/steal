@@ -62,7 +62,7 @@ public class MatchScoreService {
     public void saveRankings(Match match, List<Long> playerIds, int points) {
         playerIds.forEach(participant -> {
             Ranking ranking = rankingRepository.findRankingByLeagueIdAndPlayerId(match.getLeagueId(), participant).orElseThrow(
-                    () -> new IllegalArgumentException("Ranking does not exist - Player is not registered in the league")
+                    () -> new IllegalArgumentException("Ranking does not exist - Player with id " + participant + " is not registered in the league")
             );
             ranking.updateTotalScore(points);
             ranking.addMatchId(match.getId());

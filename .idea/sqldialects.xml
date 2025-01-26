@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/BackendApplicationTests.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/LeagueTests.java" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/MatchTests.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/PlayerTests.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/RegistrationsTests.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/backend/src/test/java/steal/app/backend/SecondaryTests.java" dialect="PostgreSQL" />

@@ -29,7 +29,7 @@ public class MatchMapper {
         match.setWinners(dto.getWinners());
         match.setLosers(dto.getLosers());
         match.setWinnerPoints(dto.getWinnerPoints());
-        match.setWinnerPoints(dto.getWinnerPoints());
+        match.setLoserPoints(dto.getLoserPoints());
         match.setLastModified(LocalDateTime.now());
 
         return match;
