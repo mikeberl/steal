@@ -3,12 +3,10 @@ package steal.app.backend.league;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(path = "api/v1/leagues")
@@ -34,18 +32,20 @@ public class LeagueController {
 
     @PostMapping
     public ResponseEntity<?> createLeague(@Valid @RequestBody  LeagueDTO leagueDTO) {
-        try {
-            League savedLeague = leagueService.addLeague(LeagueMapper.toEntity(leagueDTO));
-            return ResponseEntity.ok().body(savedLeague);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
+        League savedLeague = leagueService.addLeague(LeagueMapper.toEntity(leagueDTO));
+        return ResponseEntity.ok().body(savedLeague);
     }
 
     @PutMapping
     public ResponseEntity<League> updateLeague(@Valid @RequestBody  LeagueDTO leagueDTO) {
         League updatedLeague = leagueService.updateLeague(LeagueMapper.toEntity(leagueDTO));
         return ResponseEntity.ok().body(updatedLeague);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<?> deleteLeague(@PathVariable Long id) {
+        leagueService.deleteLeague(id);
+        return ResponseEntity.noContent().build();
     }
 
 
