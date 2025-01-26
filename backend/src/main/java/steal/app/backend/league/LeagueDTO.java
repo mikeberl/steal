@@ -1,13 +1,15 @@
 package steal.app.backend.league;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 
 public class LeagueDTO {
 
     private Long id;
-    @NotNull(message = "Text cannot be null")
+    @NotNull(message = "Id cannot be null")
     private Long ownerId;
+    @NotEmpty(message = "League cannot have empty name")
     private String name;
     private String sport;
     private String location;

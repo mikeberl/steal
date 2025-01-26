@@ -3,6 +3,7 @@ package steal.app.backend.player;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,7 +19,7 @@ public class Player {
     private String password;
 
     @ElementCollection
-    List<Long> leagues;
+    List<Long> leagues = new ArrayList<>();
 
     public Player() {}
 
@@ -35,7 +36,7 @@ public class Player {
     public void setPassword(String password) { this.password = password; }
 
     public List<Long> getLeagues() { return leagues; }
-    public void setLeagues(List<Long> leagues) {}
+    public void setLeagues(List<Long> leagues) { this.leagues = leagues; }
     public void addLeague(Long leagueId) { this.leagues.add(leagueId); }
     public void removeLeague(Long leagueId) { this.leagues.remove(leagueId); }
 }

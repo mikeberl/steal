@@ -29,6 +29,9 @@ public class Ranking {
         matchIds = new ArrayList<>();
     }
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public Long getLeagueId() { return leagueId; }
     public void setLeagueId(Long leagueId) { this.leagueId = leagueId; }
 
