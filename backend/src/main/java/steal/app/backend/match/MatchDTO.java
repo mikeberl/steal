@@ -1,6 +1,8 @@
 package steal.app.backend.match;
 
 import jakarta.persistence.ElementCollection;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,14 +12,20 @@ public class MatchDTO {
 
     private Long id;
 
+    @NotNull(message = "creatorId cannot be null")
     private Long creatorId;
+    @NotNull(message = "leagueId cannot be null")
     private Long leagueId;
     private LocalDate date;
 
+    @NotEmpty(message = "Match cannot have no winners")
     private List<Long> winners;
+    @NotEmpty(message = "Match cannot have no losers")
     private List<Long> losers;
 
+    @NotNull(message = "Match must have winnerPoints")
     private int winnerPoints;
+    @NotNull(message = "Match must have loserPoints")
     private int loserPoints;
 
     private LocalDateTime lastModified;

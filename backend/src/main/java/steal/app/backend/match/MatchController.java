@@ -1,11 +1,15 @@
 package steal.app.backend.match;
 
+import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import steal.app.backend.services.MatchScoreService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "api/v1/matches")
@@ -34,8 +38,14 @@ public class MatchController {
     }
 
     @PostMapping
-    public ResponseEntity<Match> createMatch(@RequestBody MatchDTO matchDTO) {
+    public ResponseEntity<Match> createMatch(@Valid @RequestBody MatchDTO matchDTO) {
         Match match = this.matchScoreService.saveMatch(matchDTO);
+        return ResponseEntity.ok().body(match);
+    }
+
+    @PutMapping
+    public ResponseEntity<Match> updateMatch(@Valid @RequestBody MatchDTO matchDTO) {
+        Match match = this.matchScoreService.updateMatch(matchDTO);
         return ResponseEntity.ok().body(match);
     }
 

@@ -1,10 +1,9 @@
 package steal.app.backend;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,10 +19,11 @@ import steal.app.backend.player.PlayerDTO;
 import steal.app.backend.ranking.Ranking;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MatchTests {
 
     @Autowired
@@ -112,8 +113,8 @@ public class MatchTests {
         }
     }
 
+    @Order(1)
     @Test
-    @Transactional
     public void createMatchTest() throws Exception {
         MatchDTO matchDTO = new MatchDTO();
         matchDTO.setLeagueId(league.getId());
@@ -136,5 +137,114 @@ public class MatchTests {
                 .andExpect(jsonPath("$.losers").exists())
                 .andExpect(jsonPath("$.loserPoints").value(matchDTO.getLoserPoints()))
                 .andExpect(jsonPath("$.winnerPoints").value(matchDTO.getWinnerPoints()));
+
+        MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + matchDTO.getLeagueId() + "/" + winnerP.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
+                .andExpect(jsonPath("$.playerId").value(winnerP.getId()))
+                .andExpect(jsonPath("$.totalScore").value(matchDTO.getWinnerPoints()))
+                .andReturn();
+
+        Ranking ranking = mapper.readValue(rankingResult.getResponse().getContentAsString(), Ranking.class);
+        JsonNode rootNode = mapper.readTree(rankingResult.getResponse().getContentAsString());
+        JsonNode matchIds = rootNode.get("matchIds");
+
+        if (matchIds != null && matchIds.isArray()) {
+            List<Long> matches = new ArrayList<>();
+            for (JsonNode id : matchIds) {
+                matches.add(id.asLong());
+            }
+            ranking.setMatchIds(matches);
+        }
+
+        if (ranking.getMatchIds().isEmpty()) {
+            throw new Exception("Match is not saved in ranking");
+        }
+    }
+
+    @Order(2)
+    @Test
+    public void updateMatchTest() throws Exception {
+        MatchDTO matchDTO = new MatchDTO();
+        matchDTO.setId(1L);
+        matchDTO.setLeagueId(league.getId());
+        matchDTO.setCreatorId(winnerP.getId());
+        matchDTO.setDate(LocalDate.now());
+        matchDTO.setWinners(Collections.singletonList(winnerP.getId()));
+        matchDTO.setLosers(Collections.singletonList(losingP.getId()));
+        matchDTO.setWinnerPoints(20);
+        matchDTO.setLoserPoints(-20);
+        String matchJson = mapper.writeValueAsString(matchDTO);
+        mvc.perform(put("/api/v1/matches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
+                .andExpect(jsonPath("$.creatorId").value(matchDTO.getCreatorId()))
+                .andExpect(jsonPath("$.date").value(matchDTO.getDate().toString()))
+                .andExpect(jsonPath("$.winners").exists())
+                .andExpect(jsonPath("$.losers").exists())
+                .andExpect(jsonPath("$.loserPoints").value(matchDTO.getLoserPoints()))
+                .andExpect(jsonPath("$.winnerPoints").value(matchDTO.getWinnerPoints()));
+
+        MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + matchDTO.getLeagueId() + "/" + winnerP.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
+                .andExpect(jsonPath("$.playerId").value(winnerP.getId()))
+                .andExpect(jsonPath("$.totalScore").value(matchDTO.getWinnerPoints()))
+                .andReturn();
+
+        Ranking ranking = mapper.readValue(rankingResult.getResponse().getContentAsString(), Ranking.class);
+        JsonNode rootNode = mapper.readTree(rankingResult.getResponse().getContentAsString());
+        JsonNode matchIds = rootNode.get("matchIds");
+
+        if (matchIds != null && matchIds.isArray()) {
+            List<Long> matches = new ArrayList<>();
+            for (JsonNode id : matchIds) {
+                matches.add(id.asLong());
+            }
+            ranking.setMatchIds(matches);
+        }
+
+        if (ranking.getMatchIds().isEmpty()) {
+            throw new Exception("Match is not saved in ranking");
+        }
+    }
+
+    @Order(3)
+    @Test
+    public void deleteMatchTest() throws Exception {
+        mvc.perform(delete("/api/v1/matches/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + league.getId() + "/" + winnerP.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.leagueId").value(league.getId()))
+                .andExpect(jsonPath("$.playerId").value(winnerP.getId()))
+                .andReturn();
+
+        Ranking ranking = mapper.readValue(rankingResult.getResponse().getContentAsString(), Ranking.class);
+        JsonNode rootNode = mapper.readTree(rankingResult.getResponse().getContentAsString());
+        JsonNode matchIds = rootNode.get("matchIds");
+
+        if (matchIds != null && matchIds.isArray()) {
+            List<Long> matches = new ArrayList<>();
+            for (JsonNode id : matchIds) {
+                matches.add(id.asLong());
+            }
+            ranking.setMatchIds(matches);
+        }
+
+        if (!ranking.getMatchIds().isEmpty()) {
+            throw new Exception("Match is not removed from ranking");
+        }
     }
 }

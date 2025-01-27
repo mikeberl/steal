@@ -44,6 +44,8 @@ public class Ranking {
     public void changeTotalScore(int prevScore, int newScore) { totalScore = totalScore - prevScore + newScore; }
     public void removeScore(int score) { totalScore -= score; }
 
+    public void setMatchIds(List<Long> matchIds) { this.matchIds = matchIds;     }
     public List<Long> getMatchIds() { return matchIds;    }
     public void addMatchId(Long matchId) { this.matchIds.add(matchId); }
+    public void removeMatchId(Long matchId) { this.matchIds.remove(matchId); }
 }

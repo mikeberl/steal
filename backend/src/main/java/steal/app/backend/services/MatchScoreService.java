@@ -1,6 +1,8 @@
 package steal.app.backend.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,25 +72,34 @@ public class MatchScoreService {
     }
 
     @Transactional
-    public Match modifyMatch(Long matchId, MatchDTO matchDTO) {
-        Match existingMatch = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+    public Match updateMatch(MatchDTO matchDTO) {
+        if (matchDTO.getId() == null) {
+            throw new IllegalArgumentException("Match to update has no id");
+        }
+        Match existingMatch = matchRepository.findById(matchDTO.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Match not found with id: " + matchDTO.getLeagueId()));
+
+        modifyRankings(existingMatch, matchDTO.getWinners(), existingMatch.getWinnerPoints(), matchDTO.getWinnerPoints(), false);
+        modifyRankings(existingMatch, matchDTO.getLosers(), existingMatch.getLoserPoints(), matchDTO.getLoserPoints(), false);
+
         existingMatch.setLeagueId(matchDTO.getLeagueId());
         existingMatch.setWinnerPoints(matchDTO.getWinnerPoints());
         existingMatch.setLoserPoints(matchDTO.getLoserPoints());
         existingMatch.setWinners(matchDTO.getWinners());
         existingMatch.setLosers(matchDTO.getLosers());
 
-        modifyRankings(existingMatch, matchDTO.getWinners(), existingMatch.getWinnerPoints(), matchDTO.getWinnerPoints());
-        modifyRankings(existingMatch, matchDTO.getLosers(), existingMatch.getLoserPoints(), matchDTO.getLoserPoints());
-
         return matchRepository.save(existingMatch);
     }
 
-    private void modifyRankings(Match newMatch, List<Long> playerIds, int prevPoints, int newPoints) {
+    private void modifyRankings(Match newMatch, List<Long> playerIds, int prevPoints, int newPoints, boolean deleteMatch) {
         playerIds.forEach(participant -> {
-            Ranking ranking = rankingRepository.findRankingByLeagueIdAndPlayerId(newMatch.getLeagueId(), participant).orElseThrow();
+            Ranking ranking = rankingRepository.findRankingByLeagueIdAndPlayerId(newMatch.getLeagueId(), participant).orElseThrow(
+                    () -> new EntityNotFoundException("Ranking of player " + participant + " not found")
+            );
             ranking.changeTotalScore(prevPoints, newPoints);
+            if (deleteMatch) {
+                ranking.removeMatchId(newMatch.getId());
+            }
             rankingRepository.save(ranking);
         });
     }
@@ -99,8 +110,8 @@ public class MatchScoreService {
         Match matchToDelete = matchRepository.findById(matchId).orElseThrow(
                 () -> new RuntimeException("Match not found with id: " + matchId)
         );
-        modifyRankings(matchToDelete, matchToDelete.getWinners(), matchToDelete.getWinnerPoints(), 0); // ranking is not removed just updated without the match
-        modifyRankings(matchToDelete, matchToDelete.getLosers(), matchToDelete.getLoserPoints(), 0);
+        modifyRankings(matchToDelete, matchToDelete.getWinners(), matchToDelete.getWinnerPoints(), 0, true); // ranking is not removed just updated without the match
+        modifyRankings(matchToDelete, matchToDelete.getLosers(), matchToDelete.getLoserPoints(), 0, true);
         matchRepository.delete(matchToDelete);
     }
 
