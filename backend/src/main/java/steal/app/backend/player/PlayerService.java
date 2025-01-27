@@ -3,12 +3,16 @@ package steal.app.backend.player;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class PlayerService {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final PlayerRepository playerRepository;
     @Autowired
@@ -36,6 +40,7 @@ public class PlayerService {
         if (this.playerRepository.existsByName(player.getName())) {
             throw new EntityExistsException("Player with name " + player.getName() + " already exists");
         }
+        player.setPassword(passwordEncoder.encode(player.getPassword()));
         return playerRepository.save(player);
     }
 
