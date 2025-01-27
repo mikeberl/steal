@@ -37,7 +37,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         Player player = playerRepository.findByName(authRequest.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Player not found"));
-        return jwtService.generateToken(player.getEmail());
+        return jwtService.generateToken(player.getName());
     }
 }
 

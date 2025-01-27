@@ -42,6 +42,8 @@ public class MatchTests {
 
     private final JdbcTemplate jdbc;
 
+    private TestUtils testUtils;
+
     @Autowired
     public MatchTests(final JdbcTemplate jdbc) {
         this.jdbc = jdbc;
@@ -52,6 +54,8 @@ public class MatchTests {
     League league = new League();
     Ranking rankingL = new Ranking();
     Ranking rankingW = new Ranking();
+
+    private String authToken;
 
     @BeforeAll
     void cleanupDatabase() {
@@ -66,13 +70,8 @@ public class MatchTests {
         playerDTO.setName(name);
         playerDTO.setEmail("john.doe@gmail.com");
         playerDTO.setPassword("password");
-        String playerJson = mapper.writeValueAsString(playerDTO);
 
-        MvcResult playerResult = mvc.perform(post("/api/v1/players")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(playerJson))
-                .andExpect(status().isOk()).andReturn();
-
+        MvcResult playerResult = testUtils.createPlayer(playerDTO);
         return mapper.readValue(playerResult.getResponse().getContentAsString(), Player.class);
     }
 
@@ -82,29 +81,26 @@ public class MatchTests {
         leagueDTO.setOwnerId(ownerId);
         leagueDTO.setSport("Roundnet");
         leagueDTO.setLocation("Bolzano");
-        String leagueJson = mapper.writeValueAsString(leagueDTO);
-        MvcResult leaguesResult = mvc.perform(post("/api/v1/leagues")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
-                .andDo(print())
-                .andExpect(status().isOk()).andReturn();
+        MvcResult leaguesResult = testUtils.createLeague(leagueDTO, authToken);
 
         return mapper.readValue(leaguesResult.getResponse().getContentAsString(), League.class);
     }
 
     public Ranking registerToLeague(Long leagueId, Long playerId) throws Exception {
         MvcResult registrationResult = mvc.perform(post("/api/v1/registrations/" + leagueId + "/" + playerId)
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
-
         return mapper.readValue(registrationResult.getResponse().getContentAsString(), Ranking.class);
     }
 
     @BeforeAll
     void setup() throws Exception {
+        testUtils = new TestUtils(mvc, mapper);
         try {
             winnerP = getPlayer("Mario Rossi");
             losingP = getPlayer("John Doe");
+            authToken = testUtils.loginAndGetToken(winnerP.getName(), losingP.getPassword());
             league = createLeague("Test League", winnerP.getId());
             rankingL = registerToLeague(league.getId(), losingP.getId());
             rankingW = registerToLeague(league.getId(), winnerP.getId());
@@ -127,7 +123,8 @@ public class MatchTests {
         String matchJson = mapper.writeValueAsString(matchDTO);
         mvc.perform(post("/api/v1/matches")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(matchJson))
+                        .content(matchJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
@@ -139,7 +136,8 @@ public class MatchTests {
                 .andExpect(jsonPath("$.winnerPoints").value(matchDTO.getWinnerPoints()));
 
         MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + matchDTO.getLeagueId() + "/" + winnerP.getId())
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
@@ -179,7 +177,8 @@ public class MatchTests {
         String matchJson = mapper.writeValueAsString(matchDTO);
         mvc.perform(put("/api/v1/matches")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(matchJson))
+                        .content(matchJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
@@ -191,7 +190,8 @@ public class MatchTests {
                 .andExpect(jsonPath("$.winnerPoints").value(matchDTO.getWinnerPoints()));
 
         MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + matchDTO.getLeagueId() + "/" + winnerP.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(matchDTO.getLeagueId()))
@@ -220,11 +220,13 @@ public class MatchTests {
     @Test
     public void deleteMatchTest() throws Exception {
         mvc.perform(delete("/api/v1/matches/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNoContent());
 
         MvcResult rankingResult = mvc.perform(get("/api/v1/rankings/" + league.getId() + "/" + winnerP.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(league.getId()))

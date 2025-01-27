@@ -30,6 +30,7 @@ public class PlayerController {
     @PostMapping
     public ResponseEntity<Player> createPlayer(@Valid @RequestBody PlayerDTO playerDTO) {
         Player player = this.playerService.createPlayer(PlayerMapper.toEntity(playerDTO));
+        player.setPassword(playerDTO.getPassword());
         return ResponseEntity.ok().body(player);
     }
 

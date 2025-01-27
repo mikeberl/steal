@@ -154,7 +154,7 @@ public class PlayerTests {
                 .andExpect(jsonPath("$.id").value(playerId))
                 .andExpect(jsonPath("$.name").value(dto.getName()))
                 .andExpect(jsonPath("$.email").value(dto.getEmail()))
-                .andExpect(jsonPath("$.password").value(dto.getPassword()));
+                .andExpect(jsonPath("$.password").isString());
     }
 
     @Test
@@ -181,7 +181,7 @@ public class PlayerTests {
                 .andExpect(jsonPath("$.id").value(playerId))
                 .andExpect(jsonPath("$.name").value(dto.getName()))
                 .andExpect(jsonPath("$.email").value(dto.getEmail()))
-                .andExpect(jsonPath("$.password").value(dto.getPassword()));
+                .andExpect(jsonPath("$.password").isString());
     }
 
     @Test

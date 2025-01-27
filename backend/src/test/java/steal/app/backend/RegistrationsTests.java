@@ -40,6 +40,8 @@ public class RegistrationsTests {
 
     private final JdbcTemplate jdbc;
 
+    private TestUtils testUtils;
+
     @Autowired
     public RegistrationsTests(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
@@ -47,42 +49,32 @@ public class RegistrationsTests {
 
     Player owner = new Player();
     League league = new League();
+    private String authToken;
 
     @BeforeAll
     void cleanupDatabase() throws Exception {
-//        mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-//        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
         jdbc.execute("TRUNCATE TABLE leagues RESTART IDENTITY CASCADE;");
         jdbc.execute("TRUNCATE TABLE players RESTART IDENTITY CASCADE;");
         jdbc.execute("TRUNCATE TABLE rankings RESTART IDENTITY CASCADE;");
+
+        testUtils = new TestUtils(mvc, mapper);
 
         PlayerDTO playerDTO = new PlayerDTO();
         playerDTO.setName("John Doe");
         playerDTO.setEmail("john.doe@gmail.com");
         playerDTO.setPassword("password");
-        String playerJson = mapper.writeValueAsString(playerDTO);
 
-        MvcResult playerResult = mvc.perform(post("/api/v1/players")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(playerJson))
-                .andExpect(status().isOk()).andReturn();
-
+        MvcResult playerResult = testUtils.createPlayer(playerDTO);
         this.owner = mapper.readValue(playerResult.getResponse().getContentAsString(), Player.class);
+        this.authToken = testUtils.loginAndGetToken(owner.getName(), owner.getPassword());
 
         LeagueDTO leagueDTO = new LeagueDTO();
         leagueDTO.setName("Unique League Name");
         leagueDTO.setOwnerId(owner.getId());
         leagueDTO.setSport("Roundnet");
         leagueDTO.setLocation("Bolzano");
-        String leagueJson = mapper.writeValueAsString(leagueDTO);
 
-        MvcResult leaguesResult = mvc.perform(post("/api/v1/leagues")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
-                .andDo(print())
-                .andExpect(status().isOk()).andReturn();
-
+        MvcResult leaguesResult = testUtils.createLeague(leagueDTO, this.authToken);
         this.league = mapper.readValue(leaguesResult.getResponse().getContentAsString(), League.class);
     }
 
@@ -90,7 +82,8 @@ public class RegistrationsTests {
     @Test
     public void testRegisterToLeague() throws Exception {
         MvcResult rankingsResult = mvc.perform(get("/api/v1/rankings")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
 
         String responseBody = rankingsResult.getResponse().getContentAsString();
@@ -102,7 +95,8 @@ public class RegistrationsTests {
         }
 
         MvcResult registrationResult = mvc.perform(post("/api/v1/registrations/" + league.getId() + "/" + owner.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.leagueId").value(league.getId()))
@@ -112,7 +106,8 @@ public class RegistrationsTests {
                 .andReturn();
 
         MvcResult playerResult = mvc.perform(get("/api/v1/players/" + owner.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andReturn();
         String jsonResponse = playerResult.getResponse().getContentAsString();
@@ -133,7 +128,8 @@ public class RegistrationsTests {
         }
 
         MvcResult rankingsResultAfter = mvc.perform(get("/api/v1/rankings")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
 
         String responseBodyAfter = rankingsResultAfter.getResponse().getContentAsString();
@@ -150,7 +146,8 @@ public class RegistrationsTests {
     @Test
     public void testDeRegisterToLeague() throws Exception {
         MvcResult rankingsResult = mvc.perform(get("/api/v1/rankings")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
 
         String responseBody = rankingsResult.getResponse().getContentAsString();
@@ -162,11 +159,13 @@ public class RegistrationsTests {
         }
 
         MvcResult registrationResult = mvc.perform(delete("/api/v1/registrations/" + league.getId() + "/" + owner.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNoContent()).andReturn();
 
         MvcResult playerResult = mvc.perform(get("/api/v1/players/" + owner.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andReturn();
         String jsonResponse = playerResult.getResponse().getContentAsString();
@@ -187,7 +186,8 @@ public class RegistrationsTests {
         }
 
         MvcResult rankingsResultAfter = mvc.perform(get("/api/v1/rankings")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
 
         String responseBodyAfter = rankingsResultAfter.getResponse().getContentAsString();
@@ -202,7 +202,8 @@ public class RegistrationsTests {
     @Test
     public void testRegisterToLeagueInvalidPlayer() throws Exception {
         mvc.perform(post("/api/v1/registrations/" + league.getId() + "/" + (owner.getId() + 1))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Player with id " + (owner.getId() + 1) + " does not exist"));
     }
@@ -210,7 +211,8 @@ public class RegistrationsTests {
     @Test
     public void testRegisterToLeagueInvalidLeague() throws Exception {
         mvc.perform(post("/api/v1/registrations/" + (league.getId() + 1) + "/" + (owner.getId()))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("League with id " + (league.getId() + 1) + " does not exist"));
     }
@@ -218,7 +220,8 @@ public class RegistrationsTests {
     @Test
     public void testDeRegisterToLeagueInvalidPlayer() throws Exception {
         mvc.perform(delete("/api/v1/registrations/" + league.getId() + "/" + (owner.getId() + 1))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Player with id " + (owner.getId() + 1) + " does not exist"));
     }
@@ -226,7 +229,8 @@ public class RegistrationsTests {
     @Test
     public void testDeRegisterToLeagueInvalidLeague() throws Exception {
         mvc.perform(delete("/api/v1/registrations/" + (league.getId() + 1) + "/" + (owner.getId()))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("League with id " + (league.getId() + 1) + " does not exist"));
     }

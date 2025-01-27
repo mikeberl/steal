@@ -11,8 +11,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
 import steal.app.backend.league.League;
 import steal.app.backend.league.LeagueDTO;
 import steal.app.backend.player.Player;
@@ -37,6 +39,8 @@ public class LeagueTests {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private TestUtils testUtils;
+
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -44,25 +48,26 @@ public class LeagueTests {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private String authToken;
+
     Player owner = new Player();
 
     @BeforeAll
     void cleanupDatabase() throws Exception {
         jdbcTemplate.execute("TRUNCATE TABLE leagues RESTART IDENTITY CASCADE;");
         jdbcTemplate.execute("TRUNCATE TABLE players RESTART IDENTITY CASCADE;");
+        this.testUtils = new TestUtils(mockMvc, objectMapper);
         PlayerDTO dto = new PlayerDTO();
         dto.setName("John Doe");
         dto.setEmail("john.doe@gmail.com");
         dto.setPassword("password");
-        String playerJson = objectMapper.writeValueAsString(dto);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/v1/players")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(playerJson))
-                .andExpect(status().isOk()).andReturn();
+        MvcResult mvcResult = testUtils.createPlayer(dto);
 
         this.owner = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Player.class);
+        authToken = testUtils.loginAndGetToken(owner.getName(), owner.getPassword());
     }
+
 
     @Test
     @Transactional
@@ -76,7 +81,8 @@ public class LeagueTests {
 
         MvcResult result = mockMvc.perform(post("/api/v1/leagues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
+                        .content(leagueJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
@@ -90,7 +96,8 @@ public class LeagueTests {
         Integer leagueId = JsonPath.read(responseBody, "$.id");
 
         mockMvc.perform(get("/api/v1/leagues/{id}", leagueId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(leagueId))
                 .andExpect(jsonPath("$.name").value(dto.getName()))
@@ -111,12 +118,14 @@ public class LeagueTests {
 
         mockMvc.perform(post("/api/v1/leagues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
+                        .content(leagueJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/leagues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
+                        .content(leagueJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("League already exists"));
     }
@@ -133,7 +142,8 @@ public class LeagueTests {
 
         mockMvc.perform(post("/api/v1/leagues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
+                        .content(leagueJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Owner with id " + (owner.getId() + 1) + " does not exist"));
     }
@@ -150,7 +160,8 @@ public class LeagueTests {
 
         MvcResult result = mockMvc.perform(post("/api/v1/leagues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(leagueJson))
+                        .content(leagueJson)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").value(dto.getName()))
@@ -163,7 +174,8 @@ public class LeagueTests {
         Integer leagueId = JsonPath.read(responseBody, "$.id");
 
         MvcResult allLeaguesResult = mockMvc.perform(get("/api/v1/leagues")
-                    .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
         String responseBody2 = allLeaguesResult.getResponse().getContentAsString();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -174,16 +186,17 @@ public class LeagueTests {
         }
 
         mockMvc.perform(delete("/api/v1/leagues/{id}", leagueId)
-        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNoContent());
 
-         allLeaguesResult = mockMvc.perform(get("/api/v1/leagues")
-                        .contentType(MediaType.APPLICATION_JSON))
+        allLeaguesResult = mockMvc.perform(get("/api/v1/leagues")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk()).andReturn();
-         responseBody2 = allLeaguesResult.getResponse().getContentAsString();
-         objectMapper = new ObjectMapper();
-         league = objectMapper.readValue(responseBody2, new TypeReference<List<League>>() {});
+        responseBody2 = allLeaguesResult.getResponse().getContentAsString();
+        objectMapper = new ObjectMapper();
+        league = objectMapper.readValue(responseBody2, new TypeReference<List<League>>() {});
 
         if (!league.isEmpty()) {
             throw new Exception();
